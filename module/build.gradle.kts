@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.spotless)
     alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
     signing
@@ -39,7 +40,8 @@ kotlin {
         nodejs()
         binaries.executable()
     }
-    @OptIn(ExperimentalWasmDsl::class) wasmJs {
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
         browser()
         nodejs()
         d8()
@@ -61,10 +63,22 @@ dokka {
     dokkaSourceSets {
         configureEach {
             sourceLink {
-                remoteUrl = uri("https://github.com/xfqwdsj/kmp-library/tree/v${version}/${project.name}")
+                remoteUrl =
+                    uri("https://github.com/xfqwdsj/kmp-library/tree/v${version}/${project.name}")
             }
             documentedVisibilities(VisibilityModifier.Public, VisibilityModifier.Protected)
         }
+    }
+}
+
+spotless {
+    kotlin {
+        target("src/*/kotlin/**/*.kt")
+        ktfmt().kotlinlangStyle()
+    }
+
+    kotlinGradle {
+        ktfmt().kotlinlangStyle()
     }
 }
 
@@ -102,9 +116,7 @@ mavenPublishing {
     }
 
     configure(
-        KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka(tasks.dokkaGeneratePublicationHtml),
-        ),
+        KotlinMultiplatform(javadocJar = JavadocJar.Dokka(tasks.dokkaGeneratePublicationHtml))
     )
 }
 

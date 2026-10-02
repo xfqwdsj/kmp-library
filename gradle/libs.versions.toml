@@ -4,6 +4,7 @@
 
 [versions]
 kotlin = "2.4.20"
+spotless = "8.10.3"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
 
@@ -14,5 +15,6 @@ mavenPublish = "0.37.0"
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
