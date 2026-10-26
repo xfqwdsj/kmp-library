@@ -3,6 +3,9 @@ import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.konan.target.Family
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +14,17 @@ plugins {
     alias(libs.plugins.mavenPublish)
     signing
 }
+
+val verifyApple =
+    tasks.register("verifyApple") {
+        group = "verification"
+        description = "Runs Apple target tests."
+    }
+val verifyWindows =
+    tasks.register("verifyWindows") {
+        group = "verification"
+        description = "Runs MinGW target tests."
+    }
 
 kotlin {
     jvmToolchain {
@@ -52,6 +66,20 @@ kotlin {
         nodejs()
         d8()
         binaries.executable()
+    }
+
+    targets.withType<KotlinNativeTarget>().configureEach {
+        val verification =
+            when {
+                konanTarget.family.isAppleFamily -> verifyApple
+                konanTarget.family == Family.MINGW -> verifyWindows
+                else -> null
+            }
+        if (verification != null) {
+            val targetName = name
+            val tests = tasks.withType<KotlinNativeTest>().matching { it.targetName == targetName }
+            verification.configure { dependsOn(tests) }
+        }
     }
 
     applyDefaultHierarchyTemplate()

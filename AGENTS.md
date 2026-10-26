@@ -6,8 +6,8 @@ the version catalog, publishing, CI and dependency updates — exists so that a 
 scaffold instead of an empty directory. Read this file as instructions for that scaffold, plus the rules that are meant to
 carry over into the projects built from it.
 
-Guidance for agents working in this repository. Everything here was verified against the code; keep it current when
-behavior changes.
+Guidance for agents working in this repository. Keep it current when behavior changes.
+Read [the development guide](docs/development.md) for build, test and publication contracts.
 
 Keep this file to persistent design and rules: facts that go stale quickly — version numbers, target or file lists, test
 counts — belong in the code, and this file points to the source instead of copying it. That matters more here than
@@ -32,15 +32,14 @@ anywhere else, because a derived project inherits this file before it inherits a
 ## Making a project from this template
 
 - Rename the module and the root project: `include(":module")` and `rootProject.name` in `settings.gradle.kts`, the
-  directory itself, and every `:module` reference. The comments in `settings.gradle.kts` describe subprojects this
-  template does not have; fix them while renaming.
+  directory itself, and every `:module` reference.
 - Replace the identity in `module/build.gradle.kts`: `group`, the whole POM block, the GitHub Packages URL and its
   owner, and the Dokka `sourceLink`. Replace `LICENSE` to match the POM's license, and set `version` in
   `gradle.properties`.
 - Trim the target list and the JVM target to what the library is actually for. `explicitApi()` is already switched on,
   so the sources the project adds declare their visibilities explicitly from the first commit.
 - Give the repository its own secrets for the publish workflow — Maven Central credentials, the GPG key and passphrase —
-  and its own GitHub Packages owner, which the workflow passes explicitly.
+  and configure its GitHub Packages URL. The workflow authenticates package uploads as its triggering actor.
 - Write the README and write the project's own `AGENTS.md` (next section).
 - Commit `kotlin-js-store/yarn.lock`: `kotlinUpgradeYarnLock` writes it and keeps it current, it is what makes the JS
   and Wasm dependency set reproducible, and a stale lock fails the build. This template leaves it out only to stay small
@@ -48,6 +47,9 @@ anywhere else, because a derived project inherits this file before it inherits a
 
 ## General rules to carry into a derived project
 
+- Ubuntu runs general tests, macOS runs Apple-only tests, and Windows runs MinGW-only tests. Select native
+  test runs by target family. Add device infrastructure only when a derived project's tests need it.
+- Use the root verification and publication entry points documented in `docs/development.md`.
 - Conventional commits with a scope; one concern per commit, and a fix stays separate from its regression test.
 - The version catalog is the single source of versions. Nothing declares a version inline, and a new dependency is added
   to the catalog rather than to a build file.
@@ -57,8 +59,11 @@ anywhere else, because a derived project inherits this file before it inherits a
   its output in the report instead of reasoning from memory.
 - Probes, clones and temporary copies live outside the repository; never modify the repository from a probe and never
   commit one.
-- Run the formatter, the build and the tests before considering a change done. Bypass the build cache when you need a
-  result you can trust, since it can serve a stale one.
+- Run `./gradlew :verify :verifyTargets :verifyApple` on macOS before completing scaffold changes;
+  CI verifies Ubuntu and Windows execution. Report unavailable host checks explicitly. Use focused reruns
+  when fresh execution is needed and retain normal cache directories.
+- Prepare release notes as a generated draft, then edit that draft. Publishing requires passing push CI for
+  the exact release commit. GitHub Packages attempts independent uploads; any failure blocks Maven Central.
 
 ## Writing AGENTS.md for the real project
 
