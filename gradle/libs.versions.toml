@@ -4,7 +4,7 @@
 
 [versions]
 kotlin = "2.4.21"
-spotless = "8.10.4"
+spotless = "8.11.0"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
 
